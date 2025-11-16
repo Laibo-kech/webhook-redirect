@@ -19,7 +19,10 @@
 
     // 获取 URL 中的目标网址参数
     let targetUrl = getUrlParameter('url');
-    const webhookUrl = 'https://r5d5uzik80.feishu.cn/base/workflow/webhook/event/ZEmWaxw5IwBDDZhJt1Gcyxytntd';
+
+    // 这里改成你的 n8n Webhook “生产地址”
+    // 示例：'http://121.40.230.182:5678/webhook/feishu-redirect'
+    const n8nWebhookUrl = 'http://121.40.230.182:5678/webhook/feishu-redirect';
 
     console.log('获取到的 targetUrl =', targetUrl);
 
@@ -35,15 +38,16 @@
             targetUrl = 'https://' + targetUrl;
         }
 
-        console.log('最终要请求并跳转的 targetUrl =', targetUrl);
-        updateStatus('开始发送 Webhook 请求（调试中，不跳转）...');
+        console.log('最终要提交到 n8n 的 targetUrl =', targetUrl);
+        updateStatus('开始发送到 n8n Webhook（中转到飞书）...');
 
-        console.log('准备执行 fetch 到 webhook：', webhookUrl);
+        // 通过 GET + query 参数 name 调用 n8n
+        const fullUrl = n8nWebhookUrl + '?name=' + encodeURIComponent(targetUrl);
 
-        fetch(webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: targetUrl })
+        console.log('准备执行 fetch 到 n8n：', fullUrl);
+
+        fetch(fullUrl, {
+            method: 'GET',
         })
         .then(async response => {
             const text = await response.text();
@@ -52,10 +56,10 @@
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
-            updateStatus('Webhook 调用成功（调试中，不跳转）');
+            updateStatus('已通过 n8n 成功发送到飞书（调试中，不跳转）');
         })
         .catch(error => {
-            updateStatus('Webhook 调用失败: ' + error.message);
+            updateStatus('请求 n8n 失败: ' + error.message);
             console.error('Webhook 错误详情:', error);
         });
     }
