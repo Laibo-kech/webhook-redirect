@@ -1,50 +1,62 @@
 <script>
+    console.log('=== 脚本开始执行 ===');
+
     // 从 URL 参数中获取值
     function getUrlParameter(name) {
+        console.log('调用 getUrlParameter，参数名 =', name);
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
+        const value = urlParams.get(name);
+        console.log('getUrlParameter 返回：', value);
+        return value;
     }
 
     // 更新状态信息
     function updateStatus(message) {
         const el = document.getElementById('status');
         if (el) el.textContent = message;
-        console.log(message);
+        console.log('[status]', message);
     }
 
     // 获取 URL 中的目标网址参数
     let targetUrl = getUrlParameter('url');
     const webhookUrl = 'https://r5d5uzik80.feishu.cn/base/workflow/webhook/event/ZEmWaxw5IwBDDZhJt1Gcyxytntd';
 
+    console.log('获取到的 targetUrl =', targetUrl);
+
     // 验证目标网址
     if (!targetUrl) {
+        console.log('进入：!targetUrl 分支');
         updateStatus('错误：未提供目标网址参数');
     } else {
+        console.log('进入：有 targetUrl 的分支');
+
         // 确保网址有协议头
         if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
             targetUrl = 'https://' + targetUrl;
         }
 
+        console.log('最终要跳转的 targetUrl =', targetUrl);
         updateStatus('开始发送 Webhook 请求...');
 
         // 设置超时机制（5 秒后强制跳转）
         const timeoutId = setTimeout(() => {
+            console.log('超时定时器触发，开始跳转');
             updateStatus('Webhook 请求超时，直接跳转...');
             window.location.href = targetUrl;
         }, 5000);
 
-        // 发送 POST 请求到 Webhook
+        console.log('准备执行 fetch 到 webhook：', webhookUrl);
+
         fetch(webhookUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: targetUrl
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: targetUrl })
         })
-        .then(response => {
+        .then(async response => {
             clearTimeout(timeoutId);
+            const text = await response.text();
+            console.log('fetch 完成，状态码 =', response.status);
+            console.log('响应内容 =', text);
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
@@ -58,4 +70,6 @@
             window.location.href = targetUrl;
         });
     }
+
+    console.log('=== 脚本结尾 ===');
 </script>
