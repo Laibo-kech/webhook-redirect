@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跳转中...</title>
+</head>
+<body>
+    <p>正在记录访问并跳转到目标网站...</p>
+    <script>
+        // 从URL参数中获取目标网址
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // 获取URL中的目标网址参数
+        let targetUrl = getUrlParameter('url');
+        const webhookUrl = 'https://r5d5uzik80.feishu.cn/base/workflow/webhook/event/ZEmWaxw5IwBDDZhJt1Gcyxytntd'; // 你的飞书Webhook地址
+
+        // 如果没有提供url参数，可以设置一个默认值或显示错误
+        if (!targetUrl) {
+            // 这里可以设置一个默认网址，或者显示错误信息
+            // targetUrl = 'https://www.example.com'; // 取消注释并设置默认网址
+            document.body.innerHTML = '<p>错误：未提供目标网址参数。请使用格式：<code>你的GitHub Pages地址?url=目标网址</code></p>';
+            console.error('未提供目标网址参数');
+            return;
+        }
+
+        // 确保网址有协议头（http:// 或 https://）
+        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+            targetUrl = 'https://' + targetUrl;
+        }
+
+        // 发送POST请求到Webhook
+        fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: targetUrl   // 将目标网址赋值给 'name' 元素
+            })
+        })
+        .then(response => {
+            console.log('Webhook调用成功，目标网址:', targetUrl);
+        })
+        .catch(error => {
+            console.error('Webhook调用失败:', error);
+        })
+        .finally(() => {
+            // 无论Webhook成功与否，都跳转到目标网址
+            window.location.href = targetUrl;
+        });
+    </script>
+</body>
+</html>
