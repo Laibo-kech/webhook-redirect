@@ -35,15 +35,8 @@
             targetUrl = 'https://' + targetUrl;
         }
 
-        console.log('最终要跳转的 targetUrl =', targetUrl);
-        updateStatus('开始发送 Webhook 请求...');
-
-        // 设置超时机制（5 秒后强制跳转）
-        const timeoutId = setTimeout(() => {
-            console.log('超时定时器触发，开始跳转');
-            updateStatus('Webhook 请求超时，直接跳转...');
-            window.location.href = targetUrl;
-        }, 5000);
+        console.log('最终要请求并跳转的 targetUrl =', targetUrl);
+        updateStatus('开始发送 Webhook 请求（调试中，不跳转）...');
 
         console.log('准备执行 fetch 到 webhook：', webhookUrl);
 
@@ -53,21 +46,17 @@
             body: JSON.stringify({ name: targetUrl })
         })
         .then(async response => {
-            clearTimeout(timeoutId);
             const text = await response.text();
             console.log('fetch 完成，状态码 =', response.status);
             console.log('响应内容 =', text);
             if (!response.ok) {
                 throw new Error('HTTP error! status: ' + response.status);
             }
-            updateStatus('Webhook 调用成功，正在跳转...');
-            window.location.href = targetUrl;
+            updateStatus('Webhook 调用成功（调试中，不跳转）');
         })
         .catch(error => {
-            clearTimeout(timeoutId);
-            updateStatus('Webhook 调用失败: ' + error.message + '，直接跳转...');
+            updateStatus('Webhook 调用失败: ' + error.message);
             console.error('Webhook 错误详情:', error);
-            window.location.href = targetUrl;
         });
     }
 
