@@ -20,16 +20,15 @@
     // 获取 URL 中的目标网址参数
     let targetUrl = getUrlParameter('url');
 
-    // 这里改成你的 n8n Webhook “生产地址”
-    // 示例：'http://121.40.230.182:5678/webhook/feishu-redirect'
+    // 这里改成你的 n8n Webhook “生产地址”（必须是公网能访问的）
+    // 示例：http://121.40.230.182:5678/webhook/feishu-redirect
     const n8nWebhookUrl = 'http://121.40.230.182:5678/webhook/feishu-redirect';
 
     console.log('获取到的 targetUrl =', targetUrl);
 
-    // 验证目标网址
     if (!targetUrl) {
         console.log('进入：!targetUrl 分支');
-        updateStatus('错误：未提供目标网址参数');
+        updateStatus('错误：未提供目标网址参数 ?url=');
     } else {
         console.log('进入：有 targetUrl 的分支');
 
@@ -43,23 +42,23 @@
 
         // 通过 GET + query 参数 name 调用 n8n
         const fullUrl = n8nWebhookUrl + '?name=' + encodeURIComponent(targetUrl);
-
         console.log('准备执行 fetch 到 n8n：', fullUrl);
 
         fetch(fullUrl, {
             method: 'GET',
+            mode: 'no-cors' // 避免 CORS 报错（重要）
         })
-        .then(async response => {
-            const text = await response.text();
-            console.log('fetch 完成，状态码 =', response.status);
-            console.log('响应内容 =', text);
-            if (!response.ok) {
-                throw new Error('HTTP error! status: ' + response.status);
-            }
-            updateStatus('已通过 n8n 成功发送到飞书（调试中，不跳转）');
+        .then(() => {
+            console.log('fetch 调用已发送（no-cors 模式，看不到状态码）');
+            updateStatus('已发送到 n8n（浏览器 no-cors 模式无法看到结果），即将跳转...');
+            // 1～2秒后跳转到真正目标网站
+            setTimeout(() => {
+                window.location.href = targetUrl;
+            }, 1500);
         })
         .catch(error => {
-            updateStatus('请求 n8n 失败: ' + error.message);
+            // 注意：no-cors 下其实不会进到 catch，这里只是兜底
+            updateStatus('请求 n8n 失败（可能被浏览器拦截）: ' + error.message);
             console.error('Webhook 错误详情:', error);
         });
     }
